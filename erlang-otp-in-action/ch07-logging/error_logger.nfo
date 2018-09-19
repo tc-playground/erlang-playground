@@ -1,0 +1,21 @@
+*** Erlang 'error_logger' Examples ***
+
+2> error_logger:info_msg("This is a message~n").
+=INFO REPORT==== 4-Apr-2009::14:35:47 ===
+This is a message
+ok
+
+3> error_logger:info_msg("This is an ~s message~n", ["info"]).
+=INFO REPORT==== 4-Apr-2009::14:39:23 ===
+This is an info message
+ok
+
+4> error_logger:info_msg("This is an ~s message~n", ["info", ➥this_is_an_unused_atom]).
+=INFO REPORT==== 4-Apr-2009::14:42:37 ===
+ERROR: "This is an ~s message~n" - ["info", this_is_an_unused_atom]
+ok
+
+5> error_logger:info_msg("Invalid reply ~p from ~s ~n", [<<"quux">>, ➥"stockholm"]).
+=INFO REPORT==== 4-Apr-2009::14:53:06 ===
+Invalid reply <<"quux">> from stockholm
+ok

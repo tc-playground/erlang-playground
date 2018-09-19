@@ -1,0 +1,12 @@
+{application, sws,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { sws_app, []}},
+  {env, []}
+ ]}.

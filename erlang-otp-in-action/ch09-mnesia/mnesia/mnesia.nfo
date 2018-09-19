@@ -1,0 +1,342 @@
+
+# =============================================================================
+# Setting up an Mnesia Database in Erlang
+#
+# During the course of creating this database, you’ll do the following:
+#
+# - Initialize Mnesia
+# - Start your node
+# - Create a schema
+# - Start Mnesia
+# - Create database tables
+# - Populate the tables you’ve created
+# - Perform some basic queries on the data
+
+
+# =============================================================================
+# Initialise the Mnesia Database
+#
+# Tells Mnesia to store its data in the specified directory. (Note the single 
+# quotes needed on the command line in order to preserve the double quotes 
+# around the string.) You also tell Erlang to start in distributed mode, using 
+# the –name option, so you can begin working with replication in Mnesia right 
+# away.
+#
+erl -mnesia dir '"/tmp/mnesia_store"' -name mynode
+
+# Erlang/OTP 17 [erts-6.1] [source] [64-bit] [smp:8:8] [async-threads:10] [hipe] [kernel-poll:false] [dtrace]
+
+# Eshell V6.1  (abort with ^G)
+# (mynode@plato.config)1> 
+
+
+# =============================================================================
+# Create Mnesia Database Schems
+#
+# -record(user, {name }).
+# -record(project, {title, description}).
+# -record(contributor, {user_id, title }).
+
+# Only create the schema on your local node. If the command was successful, 
+# you now have an empty schema on your node. The command can fail if one of the 
+# nodes in the list can’t be contacted, if Mnesia is already running on one 
+# of the nodes, or if there is a previously existing schema on one of them. 
+# (In the last case, you can use the function mnesia:delete_schema (Nodes) to 
+# purge the old schema—but think twice before you do this: it makes any 
+# existing tables unreadable.)
+#
+# (mynode@plato.config)1> mnesia:create_schema([node()]).
+# ok
+# (mynode@plato.config)2>
+
+
+# =============================================================================
+# Start Mnesia Database
+#
+# Run 'mnesia:start().' and 'mnesia:info().'.
+#
+# (mynode@plato.config)2> mnesia:start().
+# ok
+# (mynode@plato.config)4> mnesia:info().
+# ---> Processes holding locks <---
+# ---> Processes waiting for locks <---
+# ---> Participant transactions <---
+# ---> Coordinator transactions <---
+# ---> Uncertain transactions <---
+# ---> Active tables <---
+# schema         : with 1        records occupying 412      words of mem
+# ===> System info in version "4.12.1", debug level = none <===
+# opt_disc. Directory "/tmp/mnesia_store" is used.
+# use fallback at restart = false
+# running db nodes   = ['mynode@plato.config']
+# stopped db nodes   = []
+# master node tables = []
+# remote             = []
+# ram_copies         = []
+# disc_copies        = [schema]
+# disc_only_copies   = []
+# [{'mynode@plato.config',disc_copies}] = [schema]
+# 2 transactions committed, 0 aborted, 0 restarted, 0 logged to disc
+# 0 held locks, 0 in queue; 0 local transactions, 0 remote
+# 0 transactions waits for other nodes: []
+# ok
+# (mynode@plato.config)5>
+
+
+
+
+
+# =============================================================================
+# Create Datbase Tables
+#
+# Mnesia tables store Erlang terms and record.
+#
+# record(user, {id, name }).
+# mnesia:create_table(
+#   user, [{attributes, record_info(fields, user)}]
+#   ),
+#
+# record(project, {title, description}).
+# mnesia:create_table(
+#   project,[{attributes, record_info(fields, project)}]
+#   ),
+#
+# record(contributor, {user_id, project_title}).
+# mnesia:create_table(
+#   contributor, [{type, bag}, {attributes, record_info(fields, contributor)}]
+#   ).
+#
+#
+#
+# Default 'attributes'
+#
+# Only specifying the attributes option means that the table will get the default 
+# settings for all other options. These are as follows:
+#
+# - The table is both readable and writeable.
+# - The table is stored in RAM only (the storage type is ram_copies).
+# - The records stored in the table must have the same name as the table.
+# - The table type is set, which means there can be no more than one entry
+#   per key.
+# - The load priority is 0 (the lowest).
+# - The local_content flag is set to false.
+#
+#
+# Mnesia Table Types
+#
+# - 'set'         : Treats keys as unique—  if you insert a record with the same 
+#                   primary key as an existing entry, the new record overwrites
+#                   the old.
+#
+# - 'ordered_set' : Behaves the same as a set; but whereas sets and bags are 
+#                   implemented using hash tables, an ordered_set keeps all the 
+#                   records stored in the order of their primary keys.
+#
+# - 'bag'         : Can contain multiple records with the same key, as long as 
+#                   they differ in at least one field—inserting the exact same 
+#                   record twice has no effect.
+#
+# 
+# Mnesia Storage Types
+#
+# 'ram_copies'        : Data stored in memory only.
+#
+# 'disc_copies'       : Data stored in memory with a copay on disk.
+#
+# 'disc_only_copies'  : Data is store don disk only.
+#
+
+
+# =============================================================================
+# Inserting Database Tables
+#
+
+# With a transaction
+#
+# User = #user{id = Id, name = Name}.
+# Fun = fun() -> mnesia:write(User) end.
+# mnesia:transaction(Fun).
+
+
+# With no transaciton
+#
+# mnesia:dirty_write(#project{title=Title, description = Description}).
+
+
+# =============================================================================
+# Querying Database Tables
+#
+
+# Read table by primary key
+#
+# [#project{title = Title}] = mnesia:read(project, Title),
+
+
+# Select with Match Specification
+#
+# The first argument to select/2 is the table to search, and the second argument 
+# is a list of so-called match specifications. These can be complicated beasts, 
+# but for simple cases they’re fairly straightforward. 
+# 
+# Each match specification is a 3-tuple {Head, Conditions, Results}. 
+#
+# Head is an Erlang term representing  a pattern, where atoms (single-quoted) of 
+# the form '$1', '$2', ..., are used to represent variables. In the example, 
+# you’re searching for #user records whose name field is the atom martin and 
+# whose id field can be anything ('$1'). 
+#
+# The Conditions part lets you specify additional constraints for a match, but 
+# often it’s just left as an empty list, as in this case. 
+#
+# The Results part, finally, lets you express what kind of terms you want 
+# generated for each match; here, you can use the corresponding '$1' and so on, 
+# and they will be replaced by the actual values from the match.
+#
+# In addition to these numbered variables, the following atoms also have special 
+# meaning:
+#
+# - '_'  : [in Head part only] — Doesn’t matter; any value
+# - '$_' : [in Result and Conditions only] — The entire matching record
+# - '$$' : [in Result and Conditions only] — Same as '$1', '$2', '$3', ... 
+#          (for all of those variables that are bound in the Head part)
+#
+#
+# mnesia:transaction(
+#   fun() ->
+#     mnesia:select(user, [{#user{id = '$1', name = martin}, [], ['$1']}])
+#   end
+# ).
+#
+# When a transaction succeeds, the result has the form {atomic, Data}, where Data 
+# is the actual result of the code inside the transaction fun.
+#
+# You can find many more details about match specifications in the ERTS User’s 
+# Guide in the Erlang/OTP documentation.
+
+
+# Select with QLC (Query List Comprehensions)
+#
+# Superficially, they look like normal list comprehensions, but they’re wrapped 
+# in what looks like a call to 'qlc:q(...)'. This is just a marker that tells 
+# the compiler to handle these expressions specially. For this to work, the  
+# source code for the module must also contain the following line, which triggers
+# the special QLC compilation:
+#
+# -include_lib("stdlib/include/qlc.hrl").
+#
+# NB: (As a special case, the Erlang shell lets you use qlc:q(...) straight away; 
+# there’s no concept of include files in the shell.)
+#
+# The value produced by qlc:q(...) is a query handle, whose results can be 
+# fetched through qlc:eval(Handle). QLC is explained in detail in the stdlib 
+# section of the Erlang/OTP documentation (the qlc module).
+#
+# QLC is a generic query interface to anything that is table-like, such as ETS 
+# tables, Mnesia tables, and even your own special table implementations if 
+# you make a QLC adapter for them. The function mnesia:table(TableName) creates 
+# a handle that represents the Mnesia table in a form that QLC can use as input. 
+# From that point on, normal list-comprehension syntax for filtering and 
+# aggregation is used. Example:
+#
+# mnesia:transaction(
+#   fun() ->
+#     Table = mnesia:table(user),
+#     QueryHandle = qlc:q([U#user.id || U <- Table, U#user.name =:= martin]),
+#     qlc:eval(QueryHandle)
+#   end).
+#
+# QLC is a considerably more elegant way to perform queries than using select 
+# and match specifications. This code is much more readable: basically, it says 
+# that you want a list containing the #user.id fields for each record 'U' from 
+# the Mnesia table 'user' such that 'U#user.name' is equal to 'martin'. You can  
+# also use QLC within transactions where reading may not be the only thing going 
+# on — QLC can be mixed with any other type of Mnesia function that belongs in
+# a transaction.
+
+# =============================================================================
+# NB: Using 'Records' in the shell... type h(). for more info.
+#
+# rd(R,D)    -- define a record
+# rf()       -- remove all record information
+# rf(R)      -- remove record information about R
+# rl()       -- display all record information
+# rl(R)      -- display record information about R
+# rp(Term)   -- display Term using the shell's record information
+# rr(File)   -- read record information from File (wildcards allowed)
+# rr(F,R)    -- read selected record information from file(s)
+# rr(F,R,O)  -- read selected record information with options
+
+
+# Example
+#
+# $> rm -Rf /tmp/mnesia_store
+# $> erl -mnesia dir '"/tmp/mnesia_store"' -name mynode
+# Erlang/OTP 17 [erts-6.1] [source] [64-bit] [smp:8:8] [async-threads:10] [hipe] [kernel-poll:false] [dtrace]
+#
+# Eshell V6.1  (abort with ^G)
+# (mynode@plato.config)1> mnesia:create_schema([node()]).
+# ok
+# (mynode@plato.config)2> mnesia:start().
+# ok
+# (mynode@plato.config)3> create_tables:init_tables().
+# {atomic,ok}
+# (mynode@plato.config)4> mnesia:info().
+# ---> Processes holding locks <---
+# ---> Processes waiting for locks <---
+# ---> Participant transactions <---
+# ---> Coordinator transactions <---
+# ---> Uncertain transactions <---
+# ---> Active tables <---
+# contributor    : with 0        records occupying 305      words of mem
+# project        : with 0        records occupying 305      words of mem
+# user           : with 0        records occupying 305      words of mem
+# schema         : with 4        records occupying 763      words of mem
+# ===> System info in version "4.12.1", debug level = none <===
+# opt_disc. Directory "/tmp/mnesia_store" is used.
+# use fallback at restart = false
+# running db nodes   = ['mynode@plato.config']
+# stopped db nodes   = []
+# master node tables = []
+# remote             = []
+# ram_copies         = [contributor,project,user]
+# disc_copies        = [schema]
+# disc_only_copies   = []
+# [{'mynode@plato.config',disc_copies}] = [schema]
+# [{'mynode@plato.config',ram_copies}] = [user,project,contributor]
+# 5 transactions committed, 0 aborted, 0 restarted, 6 logged to disc
+# 0 held locks, 0 in queue; 0 local transactions, 0 remote
+# 0 transactions waits for other nodes: []
+# ok
+# (mynode@plato.config)5> ...
+# (mynode@plato.config)7> c(create_tables).
+# {ok,create_tables}
+# (mynode@plato.config)8> create_tables:insert_project(simple_cache, "a simple-cache application").
+# ok
+# (mynode@plato.config)9> create_tables:insert_user(1,martin,[simple_cache]).
+# {atomic,ok}
+# (mynode@plato.config)10> % Outside a transaction dirty operaitons must be used...
+# (mynode@plato.config)10> mnesia:dirty_read(contributor, 1).
+# [{contributor,1,simple_cache}]
+# (mynode@plato.config)11> % Query using transaction and matching spec.
+# (mynode@plato.config)16> mnesia:transaction(
+# (mynode@plato.config)16>   fun() ->
+# (mynode@plato.config)16>     mnesia:select(user, [{#user{id = '$1', name = martin}, [], ['$1']}])
+# (mynode@plato.config)16>   end
+# (mynode@plato.config)16> ).
+# * 3: record user undefined
+# (mynode@plato.config)7> rr(create_tables).
+# [contributor,project,user]
+# (mynode@plato.config)8> mnesia:transaction(
+# (mynode@plato.config)8> fun() ->
+# (mynode@plato.config)8> mnesia:select(user, [{#user{id = '$1', name = martin}, [], ['$1']}])
+# (mynode@plato.config)8> end).
+# {atomic,[1]}
+# (mynode@plato.config)9>
+
+
+
+
+
+
+
+

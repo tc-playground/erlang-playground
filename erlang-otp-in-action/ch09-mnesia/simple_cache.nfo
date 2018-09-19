@@ -1,0 +1,37 @@
+
+# ***** Compile the System *****
+#
+erlc -o ./simple_cache/ebin ./simple_cache/src/*.erl
+erlc -o ./resource_discovery/ebin ./resource_discovery/src/*.erl
+
+
+# ***** Start Cluster Orchestration Node *****
+#
+erl –sname contact1
+
+
+# ***** Start Cache on Node A *****
+#
+erl -sname a -pa ./simple_cache/ebin -pa ./resource_discovery/ebin
+1> application:start(sasl).
+2> mnesia:start().
+3> application:start(resource_discovery).
+4> application:start(simple_cache).
+
+
+# ***** Start Cache on Node B *****
+#
+erl -sname b -pa ./simple_cache/ebin -pa ./resource_discovery/ebin
+1> application:start(sasl).
+2> mnesia:start().
+3> application:start(resource_discovery).
+4> application:start(simple_cache).
+
+
+
+# ***** Insert on Node A / Fetch on Node B *****
+#
+a> simple_cache:insert("noodle", "Pancakes").
+b> simple_cache:lookup("noodle").
+
+

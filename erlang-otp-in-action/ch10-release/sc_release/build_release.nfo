@@ -1,0 +1,197 @@
+#------------------------------------------------------------------------------
+# ***** Create '.rel' files. *****
+#
+
+
+#------------------------------------------------------------------------------
+# ***** Create Local '.script' and '.bott' files. *****
+#
+# To create these files, the first thing you need to do is start an Erlang VM 
+# that has correct paths set up to all the applications specified in the '.rel' 
+# file.
+#
+
+erl -pa ./simple_cache/ebin -pa ./resource_discovery/ebin
+
+1> systools:make_script("simple_cache", [local]).
+ok
+
+%% If the successful this will generate a text '.script' file, and the  
+%% associated compiled  
+%%
+%% ***** Find Erlang Application Versions *****
+%% 
+%% $> cd /usr/local/Cellar/erlang/17.1/lib/erlang/lib/
+%% 506 Temple@plato:/usr/local/Cellar/erlang/17.1/lib/erlang/lib
+%% $> ls
+%% asn1-3.0.1             diameter-1.7           kernel-3.0.1           runtime_tools-1.8.14
+%% common_test-1.8.1      edoc-0.7.13            megaco-3.17.1          sasl-2.4
+%% compiler-5.0.1         eldap-1.0.3            mnesia-4.12.1          snmp-4.25.1
+%% cosEvent-2.1.15        erl_docgen-0.3.5       observer-2.0.1         ssh-3.0.3
+%% cosEventDomain-1.1.14  erl_interface-3.7.17   odbc-2.10.20           ssl-5.3.5
+%% cosFileTransfer-1.1.16 erts-6.1               orber-3.6.27           stdlib-2.1
+%% cosNotification-1.1.21 et-1.5                 os_mon-2.2.15          syntax_tools-1.6.15
+%% cosProperty-1.1.17     eunit-2.2.7            ose-1.0                test_server-3.7.1
+%% 
+
+
+%% Changes to a .script file, you can regenerate the .boot file using 
+%% systools:script2boot(Release).
+%%
+
+%% The local flag is mainly for testing
+%%
+%% The local option passed to the make_script/2 function stipulates that 
+%% absolute paths to all applications are written in the script and boot files 
+%% — meaning that if you try to start a system using this boot file, all 
+%% application code must reside in exactly the place it did when the boot file 
+%% was created. The local option is good for testing, as you’re doing here, 
+%% but it isn’t very portable and may not be suitable for production.
+%%
+%% Without the local option, the generated script and boot files expect that 
+%% all applications are located in a directory called lib somewhere on the 
+%% filesystem, pointed out by a system variable $ROOT.
+%%
+
+
+#------------------------------------------------------------------------------
+# ***** Run Release *****
+#
+# To start the system specify which '.boot' file to use and which '.config' file 
+# to use.
+#
+# NB: erl –sname cache –boot ./simple_cache –config ./sys –detached
+#     [Run in detatched mode - no shell - connect a shell if required]. 
+#
+# Other Options:
+#
+# 1) '–detached'      : Run in detatched mode - no shell - connect a shell if 
+#                       required.
+#
+# 2) '-mode embedded' : Load all required modules at boot time; not on the fly 
+#                       (for embedded systems).
+#
+
+erl –sname cache1 –boot ./simple_cache –config ./sys
+erl –sname cache2 –boot ./simple_cache –config ./sys
+
+
+
+#------------------------------------------------------------------------------
+# ***** Create Generic '.script' and '.bott' files. *****
+#
+# To create these files, the first thing you need to do is start an Erlang VM 
+# that has correct paths set up to all the applications specified in the '.rel' 
+# file. This time we do not pass the 'local' option; and instead pass the 
+# '{erts, code:root_dir()}' tuple. The erts option means that you want to 
+# include the runtime system as well, so that you can install the release on 
+# any compatible host machine and start it. If you don’t include ERTS in the 
+# package, you must install it (or a full Erlang/OTP distribution) separately 
+# on the target machine, and its version must match the requirement in the 
+# release package.
+#
+#
+# Including ERTS makes the package OS-dependent
+#
+# If you include ERTS in the package, it means you’re shipping executable files 
+# that will only work on compatible operating systems. For example, executables 
+# made for 32-bit Linux won’t work on a 64-bit Linux system. If you install such 
+# a package on an incompatible machine, you’ll probably get a strange error 
+# message such as “erlexec: no such file or directory” when you try to start the 
+# system.
+# 
+
+$ erl -pa ./simple_cache/ebin -pa ./resource_discovery/ebin
+Eshell V5.7.4  (abort with ^G)
+1> systools:make_script("simple_cache", []).
+ok
+2> systools:make_tar("simple_cache", [{erts, code:root_dir()}]).
+ok
+
+# A new file called simple_cache.tar.gz. This is the compressed tarball that 
+# contains all the release files.
+
+# Extract from CommandLine
+#
+> tar –xzf ../simple_cache.tar.gz
+
+# Extract via Erlang
+#
+2> erl_tar:extract("simple_cache.tar.gz", [{cwd, "tmp"}, compressed]).
+
+# The 'erl.src' file, which is an uninstantiated version of the erl startup script 
+# (on UNIX-like systems). This file contains the string %FINAL_ROOTDIR%, and the 
+# intention is that when you install the release, you copy erl.src to erl and replace 
+# this string with the actual path of your target system.
+
+
+
+#------------------------------------------------------------------------------
+# ***** Customisation *****
+#
+
+# Make ${ROOT}/bin/install.sh
+#
+#!/bin/sh
+ROOT=`pwd`
+DIR=./erts-6.1/bin
+sed s:%FINAL_ROOTDIR%:$ROOT: $DIR/erl.src > $DIR/erl
+
+
+# Make ${ROOT}/bin/simple_cache.sh
+#
+#!/bin/sh
+./erts-6.1/bin/erl \
+    -sname cache \
+    –boot ./releases/0.1.0/start \
+    –config ./releases/0.1.0/sys \
+    –detached
+
+
+
+# To create more fine-grained release packages that are to be combined on the same 
+# target system, you need to deviate from this scheme by renaming the version 
+# directory to have the form 'ReleaseName-Version' rather than just 'Version' (for 
+# example, releases/simple_cache-0.1.0 instead of releases/0.1.0). The paths in 
+# the startup script need to be changed correspondingly. Also move or copy the 
+# '.rel' file to the version subdirectory, so you always have the original file 
+# around even if you unpack a later release on top of this one. If you’re making 
+# this kind of package, you probably don’t want it to include ERTS; instead, you 
+# can make a package containing only ERTS for separate installation.
+#
+
+
+# Recreate Tarball
+#
+$ cd tmp $ erl
+Eshell V5.7.4 (abort with ^G)
+1> erl_tar:create("simple_cache-0.3.0.tar.gz", ["erts-5.7.4", "lib", ➥"releases", "bin"], [compressed]).
+
+
+#------------------------------------------------------------------------------
+# ***** Installing a Release *****
+#
+
+# OTP provides functionality for unpacking, installing, and upgrading releases 
+# through the release_handler module in SASL.
+#
+
+$ cd ${ROOT}
+$ ./bin/install.sh
+$ ./bin/simple_cache.sh
+
+# Other Build Tools 
+# - http://erlware.org
+# - https://github.com/rebar/rebar
+
+
+
+
+
+
+
+
+
+
+
+

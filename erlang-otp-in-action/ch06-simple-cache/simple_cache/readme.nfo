@@ -1,0 +1,38 @@
+# *** Compile ***
+#
+# $ cd ${PROJECT_ROOT}
+# $ erlc -o ebin src/*.erl
+
+
+# *** Run ***
+#
+# cd ${PROJECT_ROOT}
+# $ erl –pa ebin
+#
+# Eshell V5.5.5  (abort with ^G)
+# 1> application:start(simple_cache).
+# ok
+# 2>
+
+
+# *** Usage ***
+#
+# Eshell V6.1  (abort with ^G)
+# 1> application:start(simple_cache).
+# ok
+# 2> simple_cache:insert("cheese", "wobble").
+# true
+# 3> simple_cache:lookup("cheese").
+# {ok,"wobble"}
+# 4> simple_cache:delete("cheese").
+# ok
+# 5> simple_cache:lookup("cheese").
+# {error,not_found}
+# 6> simple_cache:insert("cheese", "wobble", 30).
+# true
+# 7> simple_cache:lookup("cheese").
+# {ok,"wobble"}
+# ... wait for 30s timeout ...
+# 8> simple_cache:lookup("cheese").
+# {error,not_found}
+# 9>

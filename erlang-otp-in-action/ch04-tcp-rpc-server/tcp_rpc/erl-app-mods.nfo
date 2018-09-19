@@ -1,0 +1,15 @@
+-------------------------------------------------------------------------------
+OTP Application Structure Summary
+-------------------------------------------------------------------------------
+
+You need to do several things to create an OTP application:
+
+1 Conform to the standard directory structure.
+
+2 Add the application metadata in the form of the .app file.
+
+3 Create a module that implements the 'application behaviour', which is 
+  responsible for starting the application.
+
+4 Create a module that implements the 'superviser behaviour', which is 
+  responsible for managing the application.

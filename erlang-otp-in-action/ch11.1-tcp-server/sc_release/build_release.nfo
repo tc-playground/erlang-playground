@@ -1,0 +1,57 @@
+#------------------------------------------------------------------------------
+# ***** Compile *****
+#
+
+erlc -o ./resource_discovery/ebin ./resource_discovery/src/*.erl
+erlc -o ./simple_cache/ebin ./simple_cache/src/*.erl
+erlc -o ./tcp_interface/ebin ./tcp_interface/src/*.erl
+
+#------------------------------------------------------------------------------
+# ***** Create Local '.script' and '.boot' files. *****
+#
+# To create these files, the first thing you need to do is start an Erlang VM 
+# that has correct paths set up to all the applications specified in the '.rel' 
+# file.
+#
+
+erl -pa ./simple_cache/ebin -pa ./resource_discovery/ebin
+
+1> systools:make_script("simple_cache", [local]).
+ok
+
+
+#------------------------------------------------------------------------------
+# ***** Run Release *****
+#
+# To start the system specify which '.boot' file to use and which '.config' file 
+# to use.
+#
+# NB: erl –sname cache –boot ./simple_cache –config ./sys –detached
+#     [Run in detatched mode - no shell - connect a shell if required]. 
+#
+# Other Options:
+#
+# 1) '–detached'      : Run in detatched mode - no shell - connect a shell if 
+#                       required.
+#
+# 2) '-mode embedded' : Load all required modules at boot time; not on the fly 
+#                       (for embedded systems).
+#
+
+erl -sname contact1
+erl –sname cache1 –boot ./simple_cache –config ./sys
+erl –sname cache2 –boot ./simple_cache –config ./sys
+
+telnet localhost 1155
+
+
+
+
+
+
+
+
+
+
+
+

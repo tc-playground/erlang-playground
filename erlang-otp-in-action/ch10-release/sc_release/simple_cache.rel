@@ -1,0 +1,54 @@
+%%-----------------------------------------------------------------------------
+%% The OTP '.rel file' contains a single Erlang tuple, terminated by a period. 
+%% 
+%% It has four elements. 
+%%
+%% 1) ATOM    : The first is the atom 'release;. 
+%%
+%% 2) RELEASE : This is followed by a pair containing the name of the release  
+%%              (as a string, not an atom) and the version. 
+%%
+%% 3) ERTS    : The third element is the ERTS version specification. This is a  
+%%              pair of the atom erts and the version of the required Erlang 
+%%              runtime system, as a string.
+%%
+%% 4) APPS    : A complete list of all the applications your target system 
+%%              requires. It includes not just the applications but also all 
+%%              their direct and indirect dependencies.
+%%
+%%
+%% The .rel file is just a high-level specification. The runtime system can’t 
+%% read it as it is at boot time.  It doesn’t point to an ERTS executable, 
+%% and it doesn’t provide any information about where the listed applications 
+%% can be found. This informa- tion needs to be pulled together before a real 
+%% Erlang/OTP target system can be started.
+%%
+%%
+%% ***** Find Erlang Application Versions *****
+%% 
+%% $> cd /usr/local/Cellar/erlang/17.1/lib/erlang/lib/
+%% 506 Temple@plato:/usr/local/Cellar/erlang/17.1/lib/erlang/lib
+%% $> ls
+%% asn1-3.0.1             diameter-1.7           kernel-3.0.1           runtime_tools-1.8.14
+%% common_test-1.8.1      edoc-0.7.13            megaco-3.17.1          sasl-2.4
+%% compiler-5.0.1         eldap-1.0.3            mnesia-4.12.1          snmp-4.25.1
+%% cosEvent-2.1.15        erl_docgen-0.3.5       observer-2.0.1         ssh-3.0.3
+%% cosEventDomain-1.1.14  erl_interface-3.7.17   odbc-2.10.20           ssl-5.3.5
+%% cosFileTransfer-1.1.16 erts-6.1               orber-3.6.27           stdlib-2.1
+%% cosNotification-1.1.21 et-1.5                 os_mon-2.2.15          syntax_tools-1.6.15
+%% cosProperty-1.1.17     eunit-2.2.7            ose-1.0                test_server-3.7.1
+%% 
+%% 
+
+{release,
+  {"simple_cache", "0.1.0"},
+  {erts, "6.1"},
+  [
+    {kernel, "3.0.1"},
+    {stdlib, "2.1"},
+    {sasl, "2.4"},
+    {mnesia, "4.12.1"},
+    {resource_discovery, "0.1.0"},
+    {simple_cache, "0.3.0"}
+  ]
+}.

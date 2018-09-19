@@ -1,0 +1,280 @@
+*** Usage ***
+
+$> erl -pa ebin
+Erlang/OTP 17 [erts-6.1] [source] [64-bit] [smp:8:8] [async-threads:10] [hipe] [kernel-poll:false] [dtrace]
+
+Eshell V6.1  (abort with ^G)
+1> application.start(sasl).
+* 1: syntax error before: '.'
+1> application:start(sasl).
+ok
+
+=PROGRESS REPORT==== 22-Aug-2014::00:12:43 ===
+          supervisor: {local,sasl_safe_sup}
+             started: [{pid,<0.40.0>},
+                       {name,alarm_handler},
+                       {mfargs,{alarm_handler,start_link,[]}},
+                       {restart_type,permanent},
+                       {shutdown,2000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 22-Aug-2014::00:12:43 ===
+          supervisor: {local,sasl_safe_sup}
+             started: [{pid,<0.41.0>},
+                       {name,overload},
+                       {mfargs,{overload,start_link,[]}},
+                       {restart_type,permanent},
+                       {shutdown,2000},
+                       {child_type,worker}]
+2>
+=PROGRESS REPORT==== 22-Aug-2014::00:12:43 ===
+          supervisor: {local,sasl_sup}
+             started: [{pid,<0.39.0>},
+                       {name,sasl_safe_sup},
+                       {mfargs,
+                           {supervisor,start_link,
+                               [{local,sasl_safe_sup},sasl,safe]}},
+                       {restart_type,permanent},
+                       {shutdown,infinity},
+                       {child_type,supervisor}]
+
+=PROGRESS REPORT==== 22-Aug-2014::00:12:43 ===
+          supervisor: {local,sasl_sup}
+             started: [{pid,<0.42.0>},
+                       {name,release_handler},
+                       {mfargs,{release_handler,start_link,[]}},
+                       {restart_type,permanent},
+                       {shutdown,2000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 22-Aug-2014::00:12:43 ===
+         application: sasl
+          started_at: nonode@nohost
+
+2> application:start(simple_cache).
+
+=PROGRESS REPORT==== 22-Aug-2014::00:13:01 ===
+          supervisor: {local,sc_sup}
+             started: [{pid,<0.49.0>},
+                       {name,sc_element_sup},
+                       {mfargs,{sc_element_sup,start_link,[]}},
+                       {restart_type,permanent},
+                       {shutdown,2000},
+                       {child_type,supervisor}]
+
+=PROGRESS REPORT==== 22-Aug-2014::00:13:01 ===
+          supervisor: {local,sc_sup}
+             started: [{pid,<0.50.0>},
+                       {name,sc_event},
+                       {mfargs,{sc_event,start_link,[]}},
+                       {restart_type,permanent},
+                       {shutdown,2000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 22-Aug-2014::00:13:01 ===
+         application: simple_cache
+          started_at: nonode@nohost
+ok
+3> simple_cache:put("Piggy", "Poggy").
+** exception error: undefined function simple_cache:put/2
+4> simple_cache:insert("Piggy", "Poggy").
+true
+5> simple_cache:lookup("Piggy").
+{ok,"Poggy"}
+6> observer:start().
+
+=PROGRESS REPORT==== 22-Aug-2014::00:15:56 ===
+          supervisor: {local,kernel_safe_sup}
+             started: [{pid,<0.62.0>},
+                       {name,timer_server},
+                       {mfargs,{timer,start_link,[]}},
+                       {restart_type,permanent},
+                       {shutdown,1000},
+                       {child_type,worker}]
+ok
+7> simple_cache:insert("Wibble", "Wobble").
+true
+8> simple_cache:lookup("Wibble").
+{ok,"Wobble"}
+9> simple_cache:lookup("Wibble").
+{ok,"Wobble"}
+10> simple_cache:lookup("Wibble").
+{ok,"Wobble"}
+11> sc_event_logger:add_handler().
+ok
+12> simple_cache:insert("Little", "Noodles").
+
+=INFO REPORT==== 22-Aug-2014::00:23:05 ===
+create([76,105,116,116,108,101], [78,111,111,100,108,101,115])
+true
+13> simple_cache:lookup("Little", "Noodles").
+** exception error: undefined function simple_cache:lookup/2
+14> simple_cache:lookup("Little").
+
+=INFO REPORT==== 22-Aug-2014::00:24:21 ===
+lookup([76,105,116,116,108,101])
+{ok,"Noodles"}
+15> simple_cache:lookup("Bob").
+{error,not_found}
+16> simple_cache:lookup("Wibble").
+
+=INFO REPORT==== 22-Aug-2014::00:24:54 ===
+lookup([87,105,98,98,108,101])
+{ok,"Wobble"}
+17> simple_cache:remove("Wibble").
+** exception error: undefined function simple_cache:remove/1
+18> simple_cache:delete("Wibble").
+ok
+
+=INFO REPORT==== 22-Aug-2014::00:25:19 ===
+delete([87,105,98,98,108,101])
+19> simple_cache:lookup("Wibble").
+{error,not_found}
+20> simple_cache:lookup("Little").
+{ok,"Noodles"}
+
+=INFO REPORT==== 22-Aug-2014::00:32:04 ===
+lookup([76,105,116,116,108,101])
+21> simple_cache:lookup("Little").
+
+=INFO REPORT==== 22-Aug-2014::00:32:11 ===
+lookup([76,105,116,116,108,101])
+{ok,"Noodles"}
+22> simple_cache:lookup("Little").
+{error,not_found}
+23> simple_cache:lookup("Wibble").
+BREAK: (a)bort (c)ontinue (p)roc info (i)nfo (l)oaded
+       (v)ersion (k)ill (D)b-tables (d)istribution
+^C741 Temple@plato:~/Work/dev/tutorials/erlang/erlang-otp-in-action/ch07-logging/simple_cache
+$> erlc -o ebin/ src/*.erl
+src/sc_event.erl:126: Warning: function create/3 is unused
+src/sc_event_logger.erl:68: syntax error before: ')'
+src/sc_event_logger.erl:14: function handle_event/2 undefined
+742 Temple@plato:~/Work/dev/tutorials/erlang/erlang-otp-in-action/ch07-logging/simple_cache
+$> erlc -o ebin/ src/*.erl
+src/sc_event.erl:126: Warning: function create/3 is unused
+743 Temple@plato:~/Work/dev/tutorials/erlang/erlang-otp-in-action/ch07-logging/simple_cache
+$> erlc -o ebin/ src/*.erl
+744 Temple@plato:~/Work/dev/tutorials/erlang/erlang-otp-in-action/ch07-logging/simple_cache
+$> erlc -o ebin/ src/*.erl
+745 Temple@plato:~/Work/dev/tutorials/erlang/erlang-otp-in-action/ch07-logging/simple_cache
+$> erl -pa ebin
+Erlang/OTP 17 [erts-6.1] [source] [64-bit] [smp:8:8] [async-threads:10] [hipe] [kernel-poll:false] [dtrace]
+
+Eshell V6.1  (abort with ^G)
+1> application:start(sasl).
+ok
+
+=PROGRESS REPORT==== 23-Aug-2014::10:21:13 ===
+          supervisor: {local,sasl_safe_sup}
+             started: [{pid,<0.39.0>},
+                       {name,alarm_handler},
+                       {mfargs,{alarm_handler,start_link,[]}},
+                       {restart_type,permanent},
+                       {shutdown,2000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 23-Aug-2014::10:21:13 ===
+          supervisor: {local,sasl_safe_sup}
+             started: [{pid,<0.40.0>},
+                       {name,overload},
+                       {mfargs,{overload,start_link,[]}},
+                       {restart_type,permanent},
+                       {shutdown,2000},
+                       {child_type,worker}]
+2>
+=PROGRESS REPORT==== 23-Aug-2014::10:21:13 ===
+          supervisor: {local,sasl_sup}
+             started: [{pid,<0.38.0>},
+                       {name,sasl_safe_sup},
+                       {mfargs,
+                           {supervisor,start_link,
+                               [{local,sasl_safe_sup},sasl,safe]}},
+                       {restart_type,permanent},
+                       {shutdown,infinity},
+                       {child_type,supervisor}]
+
+=PROGRESS REPORT==== 23-Aug-2014::10:21:13 ===
+          supervisor: {local,sasl_sup}
+             started: [{pid,<0.41.0>},
+                       {name,release_handler},
+                       {mfargs,{release_handler,start_link,[]}},
+                       {restart_type,permanent},
+                       {shutdown,2000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 23-Aug-2014::10:21:13 ===
+         application: sasl
+          started_at: nonode@nohost
+
+2> application:start(simple_cache).
+
+=PROGRESS REPORT==== 23-Aug-2014::10:22:34 ===
+          supervisor: {local,sc_sup}
+             started: [{pid,<0.48.0>},
+                       {name,sc_element_sup},
+                       {mfargs,{sc_element_sup,start_link,[]}},
+                       {restart_type,permanent},
+                       {shutdown,2000},
+                       {child_type,supervisor}]
+
+=PROGRESS REPORT==== 23-Aug-2014::10:22:34 ===
+          supervisor: {local,sc_sup}
+             started: [{pid,<0.49.0>},
+                       {name,sc_event},
+                       {mfargs,{sc_event,start_link,[]}},
+                       {restart_type,permanent},
+                       {shutdown,2000},
+                       {child_type,worker}]
+
+=PROGRESS REPORT==== 23-Aug-2014::10:22:34 ===
+         application: simple_cache
+          started_at: nonode@nohost
+ok
+3> simple_cache:insert("Piggy", "Poggy").
+true
+4> simple_cache:lookup("Piggy").
+{ok,"Poggy"}
+5> sc_event_logger:add_handler().
+ok
+6> simple_cache:insert("Noodle", "Pancakes").
+
+=INFO REPORT==== 23-Aug-2014::10:27:48 ===
+create([78,111,111,100,108,101], [80,97,110,99,97,107,101,115])
+true
+7> simple_cache:lookup("Noodle").
+
+=INFO REPORT==== 23-Aug-2014::10:29:28 ===
+lookup([78,111,111,100,108,101])
+{ok,"Pancakes"}
+8> simple_cache:insert("Wibble", "Wobble", 30).
+
+=INFO REPORT==== 23-Aug-2014::10:30:04 ===
+create([87,105,98,98,108,101], [87,111,98,98,108,101], 30)
+true
+9> simple_cache:lookup("Wibble").
+
+=INFO REPORT==== 23-Aug-2014::10:30:15 ===
+lookup([87,105,98,98,108,101])
+{ok,"Wobble"}
+10> % Wait 30 seconds.
+10> simple_cache:lookup("Wibble").
+{error,not_found}
+11> simple_cache:insert("black", "berries").
+
+=INFO REPORT==== 23-Aug-2014::10:32:12 ===
+create([98,108,97,99,107], [98,101,114,114,105,101,115])
+true
+12> simple_cache:lookup("black").
+
+=INFO REPORT==== 23-Aug-2014::10:32:34 ===
+lookup([98,108,97,99,107])
+{ok,"berries"}
+13> simple_cache:delete("black").
+
+=INFO REPORT==== 23-Aug-2014::10:32:45 ===
+delete([98,108,97,99,107])
+ok
+14> simple_cache:lookup("black").
+{error,not_found}
+15>
